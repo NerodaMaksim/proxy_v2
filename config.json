@@ -1,0 +1,15 @@
+{
+	"server_ipv6": "",
+	"server_ipv4": "",
+	"client_ipv6": "2a04:6ac1:0:14::1/32",
+	"client_ipv4": "185.174.102.54",
+	"client_gateway": "2a04:6ac1:0:14::2",
+	"routed_64_subnet": "",
+	"routed_32_net": "2a04:6ac1::/32",
+	"routed_32_subnet": "2a04:6ac1:0:4::/32",
+	"ipv6_nameserver": "",
+	"number_of_connections": "500",
+	"offset_of_socks": "10000",
+	"client_user": "root",
+	"client_password": "GZSYR2reSt"
+}

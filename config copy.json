@@ -1,0 +1,11 @@
+{
+	"server_ipv6": "2001:470:1f06:4db::1/64",
+	"server_ipv4": "209.51.161.14",
+	"client_ipv6": "2001:470:1f06:4db::2/64",
+	"client_ipv4": "185.103.109.102",
+	"routed_64_subnet": "2001:470:1f07:4db::/64",
+	"routed_48_subnet": "2001:470:8a17::/48",
+	"ipv6_nameserver": "2001:470:20::2",
+	"number_of_connections": "5000",
+	"offset_of_socks": "10000"
+}
