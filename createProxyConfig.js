@@ -77,7 +77,7 @@ function generateStartproxySh(){
 function generateScriptForNetworkConfig(addresses){
 	let etcNetworkInterfaces = ''
 	if(config.server_ipv4 && config.server_ipv6){
-		etcNetworkInterfaces = `#!/bin/bash\necho "auto he-ipv6\niface he-ipv6 inet6 v4tunnel\n\taddress ${config.client_ipv6.split('/')[0]}\n\tnetmask ${config.client_ipv6.split('/')[1]}\n\tendpoint ${config.server_ipv4}\n\tlocal ${config.client_ipv4}\n\tttl 255\n\tgateway ${config.server_ipv6.split('/')[0]}" >> /etc/network/interfaces`;
+		etcNetworkInterfaces = `#!/bin/bash\necho "auto he-ipv6\niface he-ipv6 inet6 v4tunnel\n\taddress ${config.client_ipv6.split('/')[0]}\n\tnetmask ${config.client_ipv6.split('/')[1]}\n\tendpoint ${config.server_ipv4}\n\tlocal ${config.client_ipv4}\n\tttl 255\n\tgateway ${config.server_ipv6.split('/')[0]}" > /etc/network/interfaces`;
 	}
 	let addIp = '';
 	for(let ip of addresses){
@@ -88,8 +88,9 @@ function generateScriptForNetworkConfig(addresses){
 	let addLoR = `ip -6 route add local ${config.routed_32_subnet} dev lo`;
 	let installation3proxy = `apt -y update && apt -y upgrade\napt-get -y install  build-essential\ncd ~\ngit clone https://github.com/z3APA3A/3proxy.git\ncd 3proxy/\nmake -f Makefile.Linux\nmkdir /etc/3proxy\nmv bin/3proxy /etc/3proxy/\ncd ~/files`
 	let mv3proxyCfg = `mv ./3proxy.cfg /etc/3proxy/`;
-	let addCrontabJob = `CRON_FILE='/var/spool/cron/root'\nif [ ! -f $CRON_FILE ]; then\n\techo "cron file for root doesnot exist, creating.."\n\ttouch $CRON_FILE\nfi\necho "32 */1 * * * /etc/startproxy.sh" > $CRON_FILE\nmv ./startproxy.sh /etc\n/usr/bin/crontab $CRON_FILE`;
-	let bashScript = `#!/bin/bash\n${etcNetworkInterfaces}\n/etc/init.d/networking restart\n${addIp}\n${addIpE}\n${addR}\n${addLoR}\n${installation3proxy}\n${mv3proxyCfg}\n${addCrontabJob}`;
+	let addCrontabJob = '/etc/startproxy.sh'//`CRON_FILE='/var/spool/cron/root'\nif [ ! -f $CRON_FILE ]; then\n\techo "cron file for root doesnot exist, creating.."\n\ttouch $CRON_FILE\nfi\necho "32 */1 * * * /etc/startproxy.sh" > $CRON_FILE\nmv ./startproxy.sh /etc\n/usr/bin/crontab $CRON_FILE`;
+	// let bashScript = `#!/bin/bash\n${etcNetworkInterfaces}\n/etc/init.d/networking restart\n${addIp}\n${addIpE}\n${addR}\n${addLoR}\n${installation3proxy}\n${mv3proxyCfg}\n${addCrontabJob}`;
+	let bashScript = `#!/bin/bash\n${etcNetworkInterfaces}\nsystemctl restart networking\n${addIp}\n${addIpE}\n${addR}\n${addLoR}\n${installation3proxy}\n${mv3proxyCfg}\n${addCrontabJob}`;
 
 	return(bashScript);
 
