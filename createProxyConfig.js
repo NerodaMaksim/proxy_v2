@@ -106,11 +106,11 @@ function writeToFiles(){
 	fs.chmodSync('./files/startproxy.sh', '777');
 	fs.chmodSync('./files/script.sh', '777');
 	spawn(`sshpass`, ['-p', config.client_password, 'scp', '-r', './files', `${config.client_user}@${config.client_ipv4}:~`])
-	let start = spawn(`sshpass`, ['-p', config.client_password,`ssh`, `${config.client_user}@${config.client_ipv4}`, `./files/script.sh`]);
-	start.stdout.pipe(process.stdout)
-	start.stdout.on('data', data => {
-		console.log(data)
-	})
+	// let start = spawn(`sshpass`, ['-p', config.client_password,`ssh`, `${config.client_user}@${config.client_ipv4}`, `./files/script.sh`]);
+	// start.stdout.pipe(process.stdout)
+	// start.stdout.on('data', data => {
+	// 	console.log(data)
+	// })
 }
 
 let addresses = generateRandomAddressArray(config.routed_32_net, config.number_of_connections);

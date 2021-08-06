@@ -8,8 +8,8 @@
 	"routed_32_net": "2a04:6ac1:0:13::/32",
 	"routed_32_subnet": "2a04:6ac1::/32",
 	"ipv6_nameserver": "",
-	"number_of_connections": "1000",
+	"number_of_connections": "10000",
 	"offset_of_socks": "10000",
 	"client_user": "root",
-	"client_password": "123"
+	"client_password": ""
 }
