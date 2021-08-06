@@ -1,15 +1,15 @@
 {
-	"server_ipv6": "2001:470:1f28:35a::1/64",
-	"server_ipv4": "216.66.90.30",
-	"client_ipv6": "2001:470:1f28:35a::2/64",
-	"client_ipv4": "185.174.102.54",
-	"client_gateway": "2001:470:1f28:35a::1",
+	"server_ipv6": "",
+	"server_ipv4": "",
+	"client_ipv6": "2a04:6ac1:0:13::1/32",
+	"client_ipv4": "185.174.102.47",
+	"client_gateway": "2a04:6ac1::2",
 	"routed_64_subnet": "",
-	"routed_32_net": "2600:70ff:d1e2::/48 ",
-	"routed_32_subnet": "2600:70ff:d1e2::/48 ",
+	"routed_32_net": "2a04:6ac1:0:13::/32",
+	"routed_32_subnet": "2a04:6ac1::/32",
 	"ipv6_nameserver": "",
-	"number_of_connections": "500",
+	"number_of_connections": "1000",
 	"offset_of_socks": "10000",
 	"client_user": "root",
-	"client_password": "cd72B1jdfR"
+	"client_password": "RkaGsDF9Aj"
 }

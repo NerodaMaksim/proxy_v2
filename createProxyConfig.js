@@ -77,7 +77,7 @@ function generateStartproxySh(){
 function generateScriptForNetworkConfig(addresses){
 	let etcNetworkInterfaces = ''
 	if(config.server_ipv4 && config.server_ipv6){
-		etcNetworkInterfaces = `#!/bin/bash\necho "auto he-ipv6\niface he-ipv6 inet6 v4tunnel\n\taddress ${config.client_ipv6.split('/')[0]}\n\tnetmask ${config.client_ipv6.split('/')[1]}\n\tendpoint ${config.server_ipv4}\n\tlocal ${config.client_ipv4}\n\tttl 255\n\tgateway ${config.server_ipv6.split('/')[0]}" > /etc/network/interfaces`;
+		etcNetworkInterfaces = `echo "auto he-ipv6\niface he-ipv6 inet6 v4tunnel\n\taddress ${config.client_ipv6.split('/')[0]}\n\tnetmask ${config.client_ipv6.split('/')[1]}\n\tendpoint ${config.server_ipv4}\n\tlocal ${config.client_ipv4}\n\tttl 255\n\tgateway ${config.server_ipv6.split('/')[0]}" > /etc/network/interfaces`;
 	}
 	let addIp = '';
 	for(let ip of addresses){
@@ -107,10 +107,10 @@ function writeToFiles(){
 	fs.chmodSync('./files/script.sh', '777');
 	spawn(`sshpass`, ['-p', config.client_password, 'scp', '-r', './files', `${config.client_user}@${config.client_ipv4}:~`])
 	let start = spawn(`sshpass`, ['-p', config.client_password,`ssh`, `${config.client_user}@${config.client_ipv4}`, `./files/script.sh`]);
-	// start.stdout.pipe(process.stdout)
-	// start.stdout.on('data', data => {
-	// 	console.log(data)
-	// })
+	start.stdout.pipe(process.stdout)
+	start.stdout.on('data', data => {
+		console.log(data)
+	})
 }
 
 let addresses = generateRandomAddressArray(config.routed_32_net, config.number_of_connections);
