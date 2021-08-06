@@ -1,0 +1,10 @@
+version: "3.2"
+services:
+        proxy:
+                image: unclemakson/proxy_v2:latest
+                build:
+                        context: https://github.com/NerodaMaksim/proxy_v2.git
+                volumes:
+                      - type: bind
+                        source: ./config.json
+                        target: /app/config.json
