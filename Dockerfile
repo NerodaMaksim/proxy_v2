@@ -2,6 +2,7 @@ FROM node:alpine
 
 RUN apk update
 RUN apk add openssl
+RUN apk add openssh
 RUN apk add lftp
 RUN apk add sshpass
 RUN apk add --update nodejs npm
