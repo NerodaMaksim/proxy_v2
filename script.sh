@@ -9,16 +9,16 @@ mkdir /etc/3proxy
 mv bin/3proxy /etc/3proxy/
 cd ~/files${etcNetworkInterfaces}
 systemctl restart networking
-ip -6 addr add 2001:470:8a17:f22b:b241:adbc:307c:64e2 dev enp0s3
-ip -6 addr add 2001:470:8a17:93c2:3397:ec36:0837:95d4 dev enp0s3
-ip -6 addr add 2001:470:8a17:fcf2:b781:e6a3:33db:ccaa dev enp0s3
-ip -6 addr add 2001:470:8a17:7da5:d372:f6ea:252c:e7c7 dev enp0s3
-ip -6 addr add 2001:470:8a17:1f74:0c1f:5926:5590:efbf dev enp0s3
-ip -6 addr add 2001:470:8a17:25b7:8117:20d3:69a0:67b7 dev enp0s3
-ip -6 addr add 2001:470:8a17:818c:4367:7fb6:d3d7:e0c9 dev enp0s3
-ip -6 addr add 2001:470:8a17:4146:ba5b:280d:7e97:e048 dev enp0s3
-ip -6 addr add 2001:470:8a17:e1ea:7c33:de27:dd60:713c dev enp0s3
-ip -6 addr add 2001:470:8a17:bf93:b72b:6e1e:b31b:06a5 dev enp0s3
+ip -6 addr add 2001:470:8a17:51c8:386f:ffad:927c:c803 dev enp0s3
+ip -6 addr add 2001:470:8a17:90cf:0c2d:8227:1d73:45a8 dev enp0s3
+ip -6 addr add 2001:470:8a17:53b5:d645:1765:3846:f8fa dev enp0s3
+ip -6 addr add 2001:470:8a17:f9cd:561c:d8ee:53e5:8ab1 dev enp0s3
+ip -6 addr add 2001:470:8a17:fcad:5959:36ee:5cbf:e687 dev enp0s3
+ip -6 addr add 2001:470:8a17:df7a:fc9c:7fe8:063d:e21a dev enp0s3
+ip -6 addr add 2001:470:8a17:d321:77ed:7953:9466:4b2f dev enp0s3
+ip -6 addr add 2001:470:8a17:c432:cd74:2271:454a:0326 dev enp0s3
+ip -6 addr add 2001:470:8a17:4335:629d:9c15:05a1:899e dev enp0s3
+ip -6 addr add 2001:470:8a17:29fa:4429:37c2:9379:9cda dev enp0s3
 
 ip -6 addr add 2001:470:8a17::/48 dev enp0s3
 ip -6 route add default via 2001:470:1f06:4db::1 dev he-ipv6
