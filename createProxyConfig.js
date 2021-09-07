@@ -9,6 +9,7 @@ nserver 8.8.8.8\n\
 nserver 8.8.4.4\n\
 nscache 65536\n\
 timeouts 1 5 30 60 180 1800 15 60\n\
+log /var/log/3proxy\n\
 auth strong";
 
 
@@ -77,20 +78,20 @@ function generateStartproxySh(){
 function generateScriptForNetworkConfig(addresses){
 	let etcNetworkInterfaces = ''
 	if(config.server_ipv4 && config.server_ipv6){
-		etcNetworkInterfaces = `echo "auto he-ipv6\niface he-ipv6 inet6 v4tunnel\n\taddress ${config.client_ipv6.split('/')[0]}\n\tnetmask ${config.client_ipv6.split('/')[1]}\n\tendpoint ${config.server_ipv4}\n\tlocal ${config.client_ipv4}\n\tttl 255\n\tgateway ${config.server_ipv6.split('/')[0]}" > /etc/network/interfaces`;
+		etcNetworkInterfaces = `interf=$(</etc/network/interfaces)\necho "$interf\n\nauto he-ipv6\niface he-ipv6 inet6 v4tunnel\n\taddress ${config.client_ipv6.split('/')[0]}\n\tnetmask ${config.client_ipv6.split('/')[1]}\n\tendpoint ${config.server_ipv4}\n\tlocal ${config.client_ipv4}\n\tttl 255\n\tgateway ${config.server_ipv6.split('/')[0]}" > /etc/network/interfaces`;
 	}
 	let addIp = '';
 	for(let ip of addresses){
-		addIp += `ip -6 addr add ${ip} dev eth0\n`;
+		addIp += `ip -6 addr add ${ip} dev ${config.iface_name}\n`;
 	}
-	let addIpE = `ip -6 addr add ${config.routed_32_net} dev eth0`
-	let addR = `ip -6 route add default via ${config.client_gateway}`;
+	let addIpE = `ip -6 addr add ${config.routed_32_net} dev ${config.iface_name}`
+	let addR = `ip -6 route add default via ${config.server_ipv4 && config.server_ipv6 ? `${config.server_ipv6.split('/')[0]} dev he-ipv6` : config.client_gateway}`;
 	let addLoR = `ip -6 route add local ${config.routed_32_subnet} dev lo`;
-	let installation3proxy = `apt -y update && apt -y upgrade\napt-get -y install  build-essential\ncd ~\ngit clone https://github.com/z3APA3A/3proxy.git\ncd 3proxy/\nmake -f Makefile.Linux\nmkdir /etc/3proxy\nmv bin/3proxy /etc/3proxy/\ncd ~/files`
+	let installation3proxy = `apt -y update && apt -y upgrade\napt-get -y install  build-essential git ifupdown\ncd ~\ngit clone https://github.com/z3APA3A/3proxy.git\ncd 3proxy/\nmake -f Makefile.Linux\nmkdir /etc/3proxy\nmv bin/3proxy /etc/3proxy/\ncd ~/files`
 	let mv3proxyCfg = `mv ./3proxy.cfg /etc/3proxy/`;
 	let addCrontabJob = '/etc/startproxy.sh'//`CRON_FILE='/var/spool/cron/root'\nif [ ! -f $CRON_FILE ]; then\n\techo "cron file for root doesnot exist, creating.."\n\ttouch $CRON_FILE\nfi\necho "32 */1 * * * /etc/startproxy.sh" > $CRON_FILE\nmv ./startproxy.sh /etc\n/usr/bin/crontab $CRON_FILE`;
 	// let bashScript = `#!/bin/bash\n${etcNetworkInterfaces}\n/etc/init.d/networking restart\n${addIp}\n${addIpE}\n${addR}\n${addLoR}\n${installation3proxy}\n${mv3proxyCfg}\n${addCrontabJob}`;
-	let bashScript = `#!/bin/bash\n${etcNetworkInterfaces}\nsystemctl restart networking\n${addIp}\n${addIpE}\n${addR}\n${addLoR}\n${installation3proxy}\n${mv3proxyCfg}\n${addCrontabJob}`;
+	let bashScript = `#!/bin/bash\n${installation3proxy}\${etcNetworkInterfaces}\nsystemctl restart networking\n${addIp}\n${addIpE}\n${addR}\n${addLoR}\nif [ -e /etc/3proxy/3proxy ]; then\necho "3proxy installed"\nelse\nmv ~/3proxy/bin/3proxy /etc/3proxy\nfi\nif [ -e ~/files/3proxy.cfg ]; then\n${mv3proxyCfg}\nfi\nif [ -e /etc/startproxy.sh ]; then\n${addCrontabJob}\nelse\nmv ~/files/startproxy.sh /etc/startproxy.sh\n${addCrontabJob}\nfi`;
 
 	return(bashScript);
 
@@ -105,12 +106,22 @@ function writeToFiles(){
 	fs.writeFileSync('./files/script.sh', script, {encoding: 'utf8', flag: 'w'});
 	fs.chmodSync('./files/startproxy.sh', '777');
 	fs.chmodSync('./files/script.sh', '777');
+	console.log('1');
 	spawn(`sshpass`, ['-p', config.client_password, 'scp', '-r', './files', `${config.client_user}@${config.client_ipv4}:~`])
-	let start = spawn(`sshpass`, ['-p', config.client_password,`ssh`, `${config.client_user}@${config.client_ipv4}`, `./files/script.sh`]);
+	let start = spawn(`sshpass`, ['-p', config.client_password, `ssh`, `${config.client_user}@${config.client_ipv4}`, `${config.client_user === 'root' ? `/root` : `/home/${config.client_user}`}/files/script.sh`]);
 	// start.stdout.pipe(process.stdout)
-	// start.stdout.on('data', data => {
-	// 	console.log(data)
-	// })
+	start.stdout.setEncoding('utf-8');
+	start.stderr.setEncoding('utf-8');
+	start.stdout.on('data', data => {
+		console.log(data)
+	})
+	start.stderr.on('data', data => {
+		console.log(data);
+		if(data === 'Proxy started OK'){
+			start.disconnect();
+		}
+	})
+	console.log(2);
 }
 
 let addresses = generateRandomAddressArray(config.routed_32_net, config.number_of_connections);

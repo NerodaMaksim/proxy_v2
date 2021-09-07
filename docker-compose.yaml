@@ -9,4 +9,7 @@ services:
                       - type: bind
                         source: ./config.json
                         target: /app/config.json
+                      - type: bind
+                        source: .
+                        target: /app/files
                 network_mode: host
