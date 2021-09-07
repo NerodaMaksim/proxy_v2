@@ -107,7 +107,7 @@ function writeToFiles(){
 	fs.chmodSync('./files/startproxy.sh', '777');
 	fs.chmodSync('./files/script.sh', '777');
 	console.log('1');
-	spawn(`sshpass`, ['-p', config.client_password, 'scp', '-r', './files', `${config.client_user}@${config.client_ipv4}:~`])
+	// spawn(`sshpass`, ['-p', config.client_password, 'scp', '-r', './files', `${config.client_user}@${config.client_ipv4}:~`])
 	// let start = spawn(`sshpass`, ['-p', config.client_password, `ssh`, `${config.client_user}@${config.client_ipv4}`, `${config.client_user === 'root' ? `/root` : `/home/${config.client_user}`}/files/script.sh`]);
 	// start.stdout.pipe(process.stdout)
 	start.stdout.setEncoding('utf-8');
