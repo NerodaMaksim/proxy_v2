@@ -118,7 +118,7 @@ function writeToFiles(){
 	start.stderr.on('data', data => {
 		console.log(data);
 		if(data === 'Proxy started OK'){
-			start.disconnect();
+			// start.disconnect();
 		}
 	})
 	console.log(2);
