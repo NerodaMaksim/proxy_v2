@@ -107,19 +107,17 @@ function writeToFiles(){
 	fs.chmodSync('./files/startproxy.sh', '777');
 	fs.chmodSync('./files/script.sh', '777');
 	console.log('1');
-	spawn(`sshpass`, ['-p', config.client_password, 'scp', '-r', './files', `${config.client_user}@${config.client_ipv4}:~`])
-	let start = spawn(`sshpass`, ['-p', config.client_password, `ssh`, `${config.client_user}@${config.client_ipv4}`, `${config.client_user === 'root' ? `/root` : `/home/${config.client_user}`}/files/script.sh`]);
+	spawn(`sshpass`, ['-p', config.client_password, 'scp', '-oStrictHostKeyChecking=no' ,'-r', './files', `${config.client_user}@${config.client_ipv4}:~`])
+	let start = spawn(`sshpass`, ['-p', config.client_password, `ssh`, `-oStrictHostKeyChecking=no`,`${config.client_user}@${config.client_ipv4}`, `${config.client_user === 'root' ? `/root` : `/home/${config.client_user}`}/files/script.sh`]);
 	// start.stdout.pipe(process.stdout)
 	start.stdout.setEncoding('utf-8');
 	start.stderr.setEncoding('utf-8');
+	console.log(1.5)
 	start.stdout.on('data', data => {
 		console.log(data)
 	})
 	start.stderr.on('data', data => {
 		console.log(data);
-		if(data === 'Proxy started OK'){
-			// start.disconnect();
-		}
 	})
 	console.log(2);
 }
