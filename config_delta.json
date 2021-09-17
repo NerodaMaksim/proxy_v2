@@ -1,16 +1,16 @@
 {
 	"server_ipv6": "",
 	"server_ipv4": "",
-	"client_ipv6": "2a04:6ac1:0:13::1/32",
-	"client_ipv4": "185.174.102.47",
+	"client_ipv6": "2a04:6ac1:0:11::1/32",
+	"client_ipv4": "185.174.101.164",
 	"client_gateway": "2a04:6ac1::2",
 	"routed_64_subnet": "",
-	"routed_32_net": "2a04:6ac1:0:13::/32",
+	"routed_32_net": "2a04:6ac1:0:11::/32",
 	"routed_32_subnet": "2a04:6ac1::/32",
 	"ipv6_nameserver": "",
-	"number_of_connections": "10000",
+	"number_of_connections": "3000",
 	"offset_of_socks": "10000",
 	"client_user": "root",
-	"client_password": "",
-	"iface_name": "ens3"
+	"client_password": "yZ6ApbPdYg",
+	"iface_name": "eth0"
 }

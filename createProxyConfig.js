@@ -78,11 +78,14 @@ function generateStartproxySh(){
 function generateScriptForNetworkConfig(addresses){
 	let etcNetworkInterfaces = ''
 	if(config.server_ipv4 && config.server_ipv6){
-		etcNetworkInterfaces = `interf=$(</etc/network/interfaces)\necho "$interf\n\nauto he-ipv6\niface he-ipv6 inet6 v4tunnel\n\taddress ${config.client_ipv6.split('/')[0]}\n\tnetmask ${config.client_ipv6.split('/')[1]}\n\tendpoint ${config.server_ipv4}\n\tlocal ${config.client_ipv4}\n\tttl 255\n\tgateway ${config.server_ipv6.split('/')[0]}" > /etc/network/interfaces`;
+		etcNetworkInterfaces = `interf=$(</etc/network/interfaces)\necho "$interf\nauto he-ipv6\niface he-ipv6 inet6 v4tunnel\n\taddress ${config.client_ipv6.split('/')[0]}\n\tnetmask ${config.client_ipv6.split('/')[1]}\n\tendpoint ${config.server_ipv4}\n\tlocal ${config.client_ipv4}\n\tttl 255\n\tgateway ${config.server_ipv6.split('/')[0]}" > /etc/network/interfaces`;
 	}
 	let addIp = '';
 	for(let ip of addresses){
 		addIp += `ip -6 addr add ${ip} dev ${config.iface_name}\n`;
+	}
+	if(config.server_ipv4 && config.server_ipv6){
+		delDefaultGetaway = `ip -6 r del default`;
 	}
 	let addIpE = `ip -6 addr add ${config.routed_32_net} dev ${config.iface_name}`
 	let addR = `ip -6 route add default via ${config.server_ipv4 && config.server_ipv6 ? `${config.server_ipv6.split('/')[0]} dev he-ipv6` : config.client_gateway}`;
@@ -91,7 +94,7 @@ function generateScriptForNetworkConfig(addresses){
 	let mv3proxyCfg = `mv ./3proxy.cfg /etc/3proxy/`;
 	let addCrontabJob = '/etc/startproxy.sh'//`CRON_FILE='/var/spool/cron/root'\nif [ ! -f $CRON_FILE ]; then\n\techo "cron file for root doesnot exist, creating.."\n\ttouch $CRON_FILE\nfi\necho "32 */1 * * * /etc/startproxy.sh" > $CRON_FILE\nmv ./startproxy.sh /etc\n/usr/bin/crontab $CRON_FILE`;
 	// let bashScript = `#!/bin/bash\n${etcNetworkInterfaces}\n/etc/init.d/networking restart\n${addIp}\n${addIpE}\n${addR}\n${addLoR}\n${installation3proxy}\n${mv3proxyCfg}\n${addCrontabJob}`;
-	let bashScript = `#!/bin/bash\n${installation3proxy}\${etcNetworkInterfaces}\nsystemctl restart networking\n${addIp}\n${addIpE}\n${addR}\n${addLoR}\nif [ -e /etc/3proxy/3proxy ]; then\necho "3proxy installed"\nelse\nmv ~/3proxy/bin/3proxy /etc/3proxy\nfi\nif [ -e ~/files/3proxy.cfg ]; then\n${mv3proxyCfg}\nfi\nif [ -e /etc/startproxy.sh ]; then\n${addCrontabJob}\nelse\nmv ~/files/startproxy.sh /etc/startproxy.sh\n${addCrontabJob}\nfi`;
+	let bashScript = `#!/bin/bash\n${installation3proxy}\n${etcNetworkInterfaces}\nsystemctl restart networking\n${addIp}\n${delDefaultGetaway}\n${addIpE}\n${addR}\n${addLoR}\nif [ -e /etc/3proxy/3proxy ]; then\necho "3proxy installed"\nelse\nmv ~/3proxy/bin/3proxy /etc/3proxy\nfi\nif [ -e ~/files/3proxy.cfg ]; then\n${mv3proxyCfg}\nfi\nif [ -e /etc/startproxy.sh ]; then\n${addCrontabJob}\nelse\nmv ~/files/startproxy.sh /etc/startproxy.sh\n${addCrontabJob}\nfi`;
 
 	return(bashScript);
 
@@ -107,6 +110,7 @@ function writeToFiles(){
 	fs.chmodSync('./files/startproxy.sh', '777');
 	fs.chmodSync('./files/script.sh', '777');
 	console.log('1');
+	// process.exit();
 	spawn(`sshpass`, ['-p', config.client_password, 'scp', '-oStrictHostKeyChecking=no' ,'-r', './files', `${config.client_user}@${config.client_ipv4}:~`])
 	let start = spawn(`sshpass`, ['-p', config.client_password, `ssh`, `-oStrictHostKeyChecking=no`,`${config.client_user}@${config.client_ipv4}`, `${config.client_user === 'root' ? `/root` : `/home/${config.client_user}`}/files/script.sh`]);
 	// start.stdout.pipe(process.stdout)
@@ -124,7 +128,7 @@ function writeToFiles(){
 
 let addresses = generateRandomAddressArray(config.routed_32_net, config.number_of_connections);
 // let addresses = [...fs.readFileSync('./files2/ip.list', {encoding: 'utf8'}).split('\n'), ...generateRandomAddressArray(config.routed_48_subnet, 500)];
-let users = generateUsersArray(config.number_of_connections);
+let users = [...fs.readFileSync('./files3/users.txt', {encoding: 'utf-8'}).split('\n')]//generateUsersArray(config.number_of_connections);
 let proxys = proxyList(config.client_ipv4, users);
 let configFile = createConfigFile(users, addresses, proxys);
 let startproxy = generateStartproxySh();
