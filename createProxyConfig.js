@@ -112,18 +112,20 @@ function writeToFiles(){
 	console.log('1');
 	// process.exit();
 	spawn(`sshpass`, ['-p', config.client_password, 'scp', '-oStrictHostKeyChecking=no' ,'-r', './files', `${config.client_user}@${config.client_ipv4}:~`])
-	let start = spawn(`sshpass`, ['-p', config.client_password, `ssh`, `-oStrictHostKeyChecking=no`,`${config.client_user}@${config.client_ipv4}`, `${config.client_user === 'root' ? `/root` : `/home/${config.client_user}`}/files/script.sh`]);
-	// start.stdout.pipe(process.stdout)
-	start.stdout.setEncoding('utf-8');
-	start.stderr.setEncoding('utf-8');
-	console.log(1.5)
-	start.stdout.on('data', data => {
-		console.log(data)
-	})
-	start.stderr.on('data', data => {
-		console.log(data);
-	})
-	console.log(2);
+	setTimeout(() => {
+		let start = spawn(`sshpass`, ['-p', config.client_password, `ssh`, `-oStrictHostKeyChecking=no`,`${config.client_user}@${config.client_ipv4}`, `${config.client_user === 'root' ? `/root` : `/home/${config.client_user}`}/files/script.sh`]);
+		// start.stdout.pipe(process.stdout)
+		start.stdout.setEncoding('utf-8');
+		start.stderr.setEncoding('utf-8');
+		console.log(1.5)
+		start.stdout.on('data', data => {
+			console.log(data)
+		})
+		start.stderr.on('data', data => {
+			console.log(data);
+		})
+		console.log(2);
+	}, 5000)
 }
 
 let addresses = generateRandomAddressArray(config.routed_32_net, config.number_of_connections);
