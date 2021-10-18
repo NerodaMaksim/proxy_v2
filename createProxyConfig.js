@@ -38,18 +38,19 @@ function generatePassword(){
 	return Array(8).fill("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890abcdefghijklmnopqrstuvwxyz").map(function(x) { return x[Math.floor(Math.random() * x.length)] }).join('');
 }
 
-function generateUsersArray(numOfUsers){
+function generateUsersArray(numOfUsers, offset=0){
 	let users = [];
-	for(let i = 1; i <= numOfUsers; i++){
-		users.push(`user${i}:${generatePassword()}`);
+	for(let i = offset + 1; i <= offset + numOfUsers; i++){
+		users.push(`user${i+3000}:${generatePassword()}`);
 	}
 	return users;
 }
 
 function proxyList(address, users){
-	let proxy = [];
+	let proxy = {socks: [], http: []};
 	for(let i = 0; i < addresses.length; i++){
-		proxy.push(`${address}:${10000 + i}:${users[i]}`);
+		proxy.http.push(`${address}:${10000 + i}:${users[i]}`);
+		proxy.socks.push(`${address}:${Number(10000) + Number(config.offset_of_socks) + Number(i)}:${users[i]}`);
 	}
 	return proxy;
 }
@@ -62,10 +63,10 @@ function createConfigFile(users, adresses, proxys){
 	for(let user of users){
 		configFile += `\nusers ${user.split(':')[0]}:CL:${user.split(':')[1]}`;
 	}
-	for(let proxy of proxys){
+	for(let proxy of proxys.http){
 		configFile += `\nallow ${proxy.split(':')[2]}`;
-		configFile += `\nproxy -n -a -6 -p${proxy.split(':')[1]} -i${proxy.split(':')[0]} -e${adresses[proxys.indexOf(proxy)]}`;
-		configFile += `\nsocks -n -a -6 -p${Number(proxy.split(':')[1]) + Number(config.offset_of_socks)} -i${proxy.split(':')[0]} -e${adresses[proxys.indexOf(proxy)]}`;
+		configFile += `\nproxy -n -a -6 -p${proxy.split(':')[1]} -i${proxy.split(':')[0]} -e${adresses[proxys.http.indexOf(proxy)]}`;
+		configFile += `\nsocks -n -a -6 -p${Number(proxy.split(':')[1]) + Number(config.offset_of_socks)} -i${proxy.split(':')[0]} -e${adresses[proxys.http.indexOf(proxy)]}`;
 		configFile += '\nflush';
 	}
 	return configFile;
@@ -84,13 +85,14 @@ function generateScriptForNetworkConfig(addresses){
 	for(let ip of addresses){
 		addIp += `ip -6 addr add ${ip} dev ${config.iface_name}\n`;
 	}
+	let delDefaultGetaway = ''
 	if(config.server_ipv4 && config.server_ipv6){
 		delDefaultGetaway = `ip -6 r del default`;
 	}
 	let addIpE = `ip -6 addr add ${config.routed_32_net} dev ${config.iface_name}`
 	let addR = `ip -6 route add default via ${config.server_ipv4 && config.server_ipv6 ? `${config.server_ipv6.split('/')[0]} dev he-ipv6` : config.client_gateway}`;
 	let addLoR = `ip -6 route add local ${config.routed_32_subnet} dev lo`;
-	let installation3proxy = `apt -y update && apt -y upgrade\napt-get -y install  build-essential git ifupdown\ncd ~\ngit clone https://github.com/z3APA3A/3proxy.git\ncd 3proxy/\nmake -f Makefile.Linux\nmkdir /etc/3proxy\nmv bin/3proxy /etc/3proxy/\ncd ~/files`
+	let installation3proxy = `echo openssh-server hold | dpkg --set-selections\napt -y update && apt -y upgrade\napt-get -y install  build-essential git ifupdown\ncd ~\ngit clone https://github.com/z3APA3A/3proxy.git\ncd 3proxy/\nmake -f Makefile.Linux\nmkdir /etc/3proxy\nmv bin/3proxy /etc/3proxy/\ncd ~/files`
 	let mv3proxyCfg = `mv ./3proxy.cfg /etc/3proxy/`;
 	let addCrontabJob = '/etc/startproxy.sh'//`CRON_FILE='/var/spool/cron/root'\nif [ ! -f $CRON_FILE ]; then\n\techo "cron file for root doesnot exist, creating.."\n\ttouch $CRON_FILE\nfi\necho "32 */1 * * * /etc/startproxy.sh" > $CRON_FILE\nmv ./startproxy.sh /etc\n/usr/bin/crontab $CRON_FILE`;
 	// let bashScript = `#!/bin/bash\n${etcNetworkInterfaces}\n/etc/init.d/networking restart\n${addIp}\n${addIpE}\n${addR}\n${addLoR}\n${installation3proxy}\n${mv3proxyCfg}\n${addCrontabJob}`;
@@ -103,7 +105,8 @@ function generateScriptForNetworkConfig(addresses){
 
 function writeToFiles(){
 	fs.writeFileSync('./files/ip.list', addresses.join('\n'), {encoding: 'utf8', flag: 'w'});
-	fs.writeFileSync('./files/proxy.txt', proxys.join('\n'), {encoding: 'utf8', flag: 'w'});
+	fs.writeFileSync('./files/http.txt', proxys.http.join('\n'), {encoding: 'utf8', flag: 'w'});
+	fs.writeFileSync('./files/socks.txt', proxys.socks.join('\n'), {encoding: 'utf8', flag: 'w'});
 	fs.writeFileSync('./files/3proxy.cfg', configFile, {encoding: 'utf8', flag: 'w'});
 	fs.writeFileSync('./files/startproxy.sh', startproxy, {encoding: 'utf8', flag: 'w'});
 	fs.writeFileSync('./files/script.sh', script, {encoding: 'utf8', flag: 'w'});
@@ -114,7 +117,7 @@ function writeToFiles(){
 	spawn(`sshpass`, ['-p', config.client_password, 'scp', '-oStrictHostKeyChecking=no' ,'-r', './files', `${config.client_user}@${config.client_ipv4}:~`])
 	setTimeout(() => {
 		let start = spawn(`sshpass`, ['-p', config.client_password, `ssh`, `-oStrictHostKeyChecking=no`,`${config.client_user}@${config.client_ipv4}`, `${config.client_user === 'root' ? `/root` : `/home/${config.client_user}`}/files/script.sh`]);
-		// start.stdout.pipe(process.stdout)
+		start.stdin.pipe(process.stdin)
 		start.stdout.setEncoding('utf-8');
 		start.stderr.setEncoding('utf-8');
 		console.log(1.5)
@@ -130,7 +133,8 @@ function writeToFiles(){
 
 let addresses = generateRandomAddressArray(config.routed_32_net, config.number_of_connections);
 // let addresses = [...fs.readFileSync('./files2/ip.list', {encoding: 'utf8'}).split('\n'), ...generateRandomAddressArray(config.routed_48_subnet, 500)];
-let users = [...fs.readFileSync('./files3/users.txt', {encoding: 'utf-8'}).split('\n')]//generateUsersArray(config.number_of_connections);
+let users = [...fs.readFileSync('./files3/users.txt', {encoding: 'utf-8'}).split('\n')/*, ...generateUsersArray(4000, 3000)*/] // for reading users and pass from users.txt
+// let users = generateUsersArray(config.number_of_connections); // for generating users and pass randomly
 let proxys = proxyList(config.client_ipv4, users);
 let configFile = createConfigFile(users, addresses, proxys);
 let startproxy = generateStartproxySh();

@@ -12,5 +12,5 @@
 	"offset_of_socks": "10000",
 	"client_user": "root",
 	"client_password": "ys7t06Y35f51",
-	"iface_name": "enp0s3"
+	"iface_name": "ens3"
 }
